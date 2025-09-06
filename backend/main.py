@@ -113,7 +113,7 @@ async def adsterra_return(user_id: int, step: int):
     print(f"Adsterra click logged: user_id={user_id}, step={step}")
 
     # Redirect to frontend with step
-    frontend_url = f"https://your-frontend.onrender.com?user_id={user_id}&step={step}"
+    frontend_url = f"https://quizzy-tg-mini-app-frontend.onrender.com?user_id={user_id}&step={step}"
     return RedirectResponse(frontend_url)
 
 
