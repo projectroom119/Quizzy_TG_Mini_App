@@ -23,7 +23,10 @@ app = FastAPI()
 # CORS for Telegram Mini App
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://quizzy-tg-mini-app-frontend.onrender.com"],
+    allow_origins=[
+        "https://quizzy-tg-mini-app-frontend.onrender.com",  # ← Your frontend
+        "https://quizzy-tg-mini-app-backend.onrender.com"     # ← Your backend (for testing)
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
