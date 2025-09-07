@@ -253,7 +253,7 @@ async def admin_dashboard(request: Request):
     try:
         users = supabase.table("users").select("id").execute()
         # ✅ FIXED: Use 'is not null' correctly
-        surveys = supabase.table("survey_sessions").select("id").neq("completed_at", None).execute()
+        surveys = supabase.table("survey_sessions").select("id").not_.is_.null("completed_at").execute()
         pending = supabase.table("redemptions").select("id").eq("status", "pending").execute()
         
         return templates.TemplateResponse("admin_dashboard.html", {
