@@ -23,8 +23,9 @@ supabase: Client = create_client(url, key)
 
 app = FastAPI()
 
-# Add after app = FastAPI()
-templates = Jinja2Templates(directory="templates")
+# ✅ FIXED: Use absolute path for templates
+import os
+templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")  # Set in Render env vars
 
@@ -36,12 +37,12 @@ def require_admin(request: Request):
     if session_id not in admin_sessions:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-# CORS for Telegram Mini App
+# ✅ FIXED: Remove trailing spaces in CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://quizzy-tg-mini-app-frontend.onrender.com",  # ← Fixed: no trailing space
-        "https://quizzy-tg-mini-app-backend.onrender.com"     # ← Fixed: no trailing space
+        "https://quizzy-tg-mini-app-frontend.onrender.com",  # ← NO TRAILING SPACE
+        "https://quizzy-tg-mini-app-backend.onrender.com"     # ← NO TRAILING SPACE
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -220,9 +221,15 @@ async def redeem_stars(request: Request):
     
     return {"message": "✅ Redemption request received! We'll send 500 REAL Telegram Stars within 24h."}
 
+# ✅ FIXED: Added error handling to all admin routes
+
 @app.get("/admin/login", response_class=HTMLResponse)
 async def admin_login_page(request: Request):
-    return templates.TemplateResponse("admin_login.html", {"request": request})
+    try:
+        return templates.TemplateResponse("admin_login.html", {"request": request})
+    except Exception as e:
+        print(f"Template error: {e}")
+        return HTMLResponse("Template not found - check backend/templates/ folder", status_code=500)
 
 @app.post("/admin/login")
 async def admin_login(request: Request, password: str = Form(...)):
@@ -233,57 +240,78 @@ async def admin_login(request: Request, password: str = Form(...)):
         response.set_cookie(key="admin_session", value=session_id)
         return response
     else:
-        return templates.TemplateResponse("admin_login.html", {"request": request, "error": "Invalid password"})
-
-
+        try:
+            return templates.TemplateResponse("admin_login.html", {"request": request, "error": "Invalid password"})
+        except Exception as e:
+            print(f"Template error: {e}")
+            return HTMLResponse("Template not found", status_code=500)
 
 @app.get("/admin/dashboard", response_class=HTMLResponse)
 async def admin_dashboard(request: Request):
     require_admin(request)
     
-    users = supabase.table("users").select("id").execute()
-    surveys = supabase.table("survey_sessions").select("id").eq("completed_at", "not.is.null").execute()
-    pending = supabase.table("redemptions").select("id").eq("status", "pending").execute()
-    
-    return templates.TemplateResponse("admin_dashboard.html", {
-        "request": request,
-        "users_count": len(users.data),
-        "surveys_count": len(surveys.data),
-        "pending_redemptions": len(pending.data)
-    })
-    
-    
+    try:
+        users = supabase.table("users").select("id").execute()
+        # ✅ FIXED: Use 'is not null' correctly
+        surveys = supabase.table("survey_sessions").select("id").neq("completed_at", None).execute()
+        pending = supabase.table("redemptions").select("id").eq("status", "pending").execute()
+        
+        return templates.TemplateResponse("admin_dashboard.html", {
+            "request": request,
+            "users_count": len(users.data),
+            "surveys_count": len(surveys.data),
+            "pending_redemptions": len(pending.data)
+        })
+    except Exception as e:
+        print(f"Template error: {e}")
+        return HTMLResponse("Template rendering failed", status_code=500)
+
 @app.get("/admin/surveys", response_class=HTMLResponse)
 async def admin_surveys(request: Request):
     require_admin(request)
-    surveys = supabase.table("surveys").select("*").execute()
-    return templates.TemplateResponse("admin_surveys.html", {"request": request, "surveys": surveys.data})
+    try:
+        surveys = supabase.table("surveys").select("*").execute()
+        return templates.TemplateResponse("admin_surveys.html", {"request": request, "surveys": surveys.data})
+    except Exception as e:
+        print(f"Template error: {e}")
+        return HTMLResponse("Template not found", status_code=500)
 
 @app.post("/admin/surveys")
 async def add_survey(request: Request, question: str = Form(...), options: str = Form(...)):
     require_admin(request)
-    options_list = [opt.strip() for opt in options.split('\n') if opt.strip()]
-    supabase.table("surveys").insert({
-        "question": question,
-        "options": options_list
-    }).execute()
-    return RedirectResponse("/admin/surveys", status_code=303)
-
+    try:
+        options_list = [opt.strip() for opt in options.split('\n') if opt.strip()]
+        supabase.table("surveys").insert({
+            "question": question,
+            "options": options_list
+        }).execute()
+        return RedirectResponse("/admin/surveys", status_code=303)
+    except Exception as e:
+        print(f"Error adding survey: {e}")
+        return HTMLResponse("Failed to add survey", status_code=500)
 
 @app.get("/admin/redemptions", response_class=HTMLResponse)
 async def admin_redemptions(request: Request):
     require_admin(request)
-    redemptions = supabase.table("redemptions").select("*").eq("status", "pending").execute()
-    return templates.TemplateResponse("admin_redemptions.html", {"request": request, "redemptions": redemptions.data})
+    try:
+        redemptions = supabase.table("redemptions").select("*").eq("status", "pending").execute()
+        return templates.TemplateResponse("admin_redemptions.html", {"request": request, "redemptions": redemptions.data})
+    except Exception as e:
+        print(f"Template error: {e}")
+        return HTMLResponse("Template not found", status_code=500)
 
 @app.post("/admin/redemptions/{redemption_id}/approve")
 async def approve_redemption(request: Request, redemption_id: int):
     require_admin(request)
-    supabase.table("redemptions").update({
-        "status": "sent",
-        "sent_at": datetime.utcnow().isoformat()
-    }).eq("id", redemption_id).execute()
-    return RedirectResponse("/admin/redemptions", status_code=303)
+    try:
+        supabase.table("redemptions").update({
+            "status": "sent",
+            "sent_at": datetime.utcnow().isoformat()
+        }).eq("id", redemption_id).execute()
+        return RedirectResponse("/admin/redemptions", status_code=303)
+    except Exception as e:
+        print(f"Error approving redemption: {e}")
+        return HTMLResponse("Failed to approve redemption", status_code=500)
 
 @app.get("/admin/logout")
 async def admin_logout(request: Request):
@@ -293,7 +321,6 @@ async def admin_logout(request: Request):
     response = RedirectResponse("/admin/login")
     response.delete_cookie("admin_session")
     return response
-
 
 @app.get("/health")
 async def health_check():
