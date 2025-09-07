@@ -3,8 +3,7 @@ tg.expand();
 
 // ✅ ADD THIS LINE
 const BACKEND_URL = "https://quizzy-tg-mini-app-backend.onrender.com"; // ← NO TRAILING SPACE!
-
-let userId = tg.initDataUnsafe?.user?.id;
+let userId = tg.initDataUnsafe?.user?.id || 5138176448; // ← Your Telegram ID
 let sessionId = null;
 let currentStep = 1;
 let starBalance = 0;
@@ -63,12 +62,15 @@ async function init() {
 
 // Start Survey
 async function startSurvey() {
-  // ✅ FIXED: Use BACKEND_URL
-  const res = await fetch(`${BACKEND_URL}/api/start-survey`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegram_id: userId }),
-  });
+    if (!userId) {
+        console.error("No Telegram user ID!");
+        return;
+    }
+    const res = await fetch(`${BACKEND_URL}/api/start-survey`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegram_id: userId })
+    });
   const data = await res.json();
   sessionId = data.session_id;
 }

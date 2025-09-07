@@ -64,9 +64,10 @@ async def get_user(telegram_id: int):
 
 @app.post("/api/start-survey")
 async def start_survey(request: Request):
-    """Start new survey session"""
     data = await request.json()
+    print("Received data:", data)  # ← Add this
     telegram_id = data.get("telegram_id")
+    print("Telegram ID:", telegram_id)  # ← Add this
 
     # Create survey session
     session = {
