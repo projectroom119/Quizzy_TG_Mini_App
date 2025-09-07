@@ -1,78 +1,98 @@
+/* RESET & BASE */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: #f0f4f8;
-  padding: 20px 0 70px 0;
+  padding: 0;
   margin: 0;
   text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* User Header */
+/* USER HEADER */
 .user-header {
   display: flex;
   align-items: center;
-  padding: 10px 20px;
+  padding: 12px 16px;
   background: white;
   border-bottom: 1px solid #e0e0e0;
   position: sticky;
   top: 0;
   z-index: 100;
+  width: 100%;
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  margin-right: 10px;
+  margin-right: 12px;
+  flex-shrink: 0;
 }
 
 .user-info {
   text-align: left;
+  flex: 1;
+  min-width: 0; /* allows text to truncate if needed */
 }
 
 .name {
-  font-weight: bold;
+  font-weight: 600;
   color: #333;
-  font-size: 16px;
+  font-size: 15px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .balance {
   color: #ff6b6b;
-  font-weight: bold;
-  font-size: 14px;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.3;
 }
 
-/* Pages */
+/* PAGES */
 .page {
   display: none;
-  padding: 20px;
+  padding: 16px;
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
 }
 
-/* Task Card */
-.task-card {
-  background: white;
-  padding: 20px;
-  border-radius: 15px;
-  margin: 15px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  text-align: left;
-}
-
-.task-card h3 {
-  margin: 0 0 10px 0;
-  color: #333;
-}
-
-/* Dashboard Card */
+/* TASK & DASHBOARD CARDS */
+.task-card,
 .dashboard-card {
   background: white;
-  padding: 20px;
-  border-radius: 15px;
-  margin: 15px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  border-radius: 12px;
+  margin: 12px 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   text-align: left;
+  width: 100%;
+  max-width: 100%;
 }
 
-/* Bottom Navigation */
+.task-card h3,
+.dashboard-card h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* BOTTOM NAVIGATION */
 .bottom-nav {
   display: flex;
   position: fixed;
@@ -82,16 +102,20 @@ body {
   background: white;
   border-top: 1px solid #e0e0e0;
   z-index: 100;
+  padding: 8px 0;
 }
 
 .nav-btn {
   flex: 1;
-  padding: 15px;
+  padding: 12px 8px;
   border: none;
-  background: #f0f0f0;
-  font-size: 14px;
-  font-weight: bold;
+  background: #f8f9fa;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
+  transition: background 0.2s;
+  text-align: center;
+  line-height: 1.2;
 }
 
 .nav-btn.active {
@@ -99,7 +123,7 @@ body {
   color: white;
 }
 
-/* Modal */
+/* MODAL */
 .modal {
   display: none;
   position: fixed;
@@ -109,62 +133,72 @@ body {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  align-items: center;
+  justify-content: center;
+  display: flex; /* center modal content */
 }
 
 .modal-content {
   background-color: white;
-  margin: 15% auto;
-  padding: 20px;
-  border-radius: 15px;
-  width: 80%;
+  padding: 24px 20px;
+  border-radius: 16px;
+  width: 100%;
   max-width: 400px;
   text-align: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Button */
+/* BUTTONS */
 .btn {
   display: block;
-  width: 80%;
-  max-width: 300px;
-  margin: 10px auto;
-  padding: 15px;
+  width: 100%;
+  max-width: 320px;
+  margin: 12px auto;
+  padding: 14px;
   border: none;
   border-radius: 12px;
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
   background: #3b5998;
   color: white;
+  line-height: 1.3;
 }
 
 .redeem-btn {
   background: #ff6b6b;
 }
 
-/* Option Button */
+/* OPTION BUTTON */
 .option-btn {
   display: block;
-  width: 90%;
-  max-width: 350px;
+  width: 100%;
+  max-width: 360px;
   margin: 8px auto;
-  padding: 12px;
+  padding: 14px;
   background: white;
   border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  font-size: 16px;
+  border-radius: 12px;
+  font-size: 15px;
   cursor: pointer;
-  text-align: left;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  line-height: 1.3;
+  transition: all 0.2s;
 }
 
 .option-btn:hover {
-  background: #f0f0f0;
+  background: #f8f9fa;
   border-color: #3b5998;
+  transform: translateY(-1px);
 }
 
-/* Toast */
+/* TOAST */
 .toast {
   position: fixed;
   bottom: 80px;
@@ -172,30 +206,38 @@ body {
   transform: translateX(-50%);
   background: #333;
   color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 12px 20px;
+  border-radius: 8px;
   display: none;
   z-index: 1000;
+  font-size: 14px;
+  max-width: 80%;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Input Field */
+/* INPUT FIELD */
 .input-field {
-  width: 80%;
-  max-width: 300px;
-  padding: 10px;
+  width: 100%;
+  max-width: 320px;
+  padding: 12px;
   margin: 10px auto;
   border: 1px solid #e0e0e0;
-  border-radius: 5px;
+  border-radius: 8px;
   display: block;
+  font-size: 15px;
+  line-height: 1.4;
 }
 
-/* Loader (skeleton) */
+/* LOADER (SKELETON) */
 .skeleton {
   background: #e0e0e0;
-  border-radius: 5px;
-  margin: 10px 0;
-  height: 20px;
+  border-radius: 6px;
+  margin: 8px 0;
+  height: 16px;
   animation: pulse 1.5s infinite;
+  width: 100%;
+  max-width: 100%;
 }
 
 @keyframes pulse {
@@ -207,5 +249,57 @@ body {
   }
   100% {
     opacity: 0.6;
+  }
+}
+
+/* PHONE LANDSCAPE & SMALL SCREENS */
+@media (max-height: 600px) {
+  .modal-content {
+    margin: 10vh auto;
+    padding: 16px;
+  }
+
+  .btn {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .option-btn {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .user-header {
+    padding: 8px 12px;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+  }
+
+  .name {
+    font-size: 14px;
+  }
+
+  .balance {
+    font-size: 12px;
+  }
+}
+
+/* VERY SMALL SCREENS (iPhone SE, etc.) */
+@media (max-width: 320px) {
+  .modal-content {
+    padding: 16px;
+  }
+
+  .btn,
+  .option-btn {
+    max-width: 280px;
+  }
+
+  .input-field {
+    max-width: 280px;
   }
 }
