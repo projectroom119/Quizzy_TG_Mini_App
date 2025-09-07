@@ -84,42 +84,29 @@ async def start_survey(request: Request):
 
 @app.post("/api/submit-answer")
 async def submit_answer(request: Request):
-    """Submit answer → redirect to Adsterra DL"""
     data = await request.json()
     telegram_id = data.get("telegram_id")
-    session_id = data.get("session_id")
     step = data.get("step")
     answer = data.get("answer")
-
-    # Update survey session
-    current = (
-        supabase.table("survey_sessions")
-        .select("answers")
-        .eq("id", session_id)
-        .execute()
-    )
+    
+    # Save answer to Supabase
+    current = supabase.table("survey_sessions").select("answers").eq("user_id", telegram_id).execute()
     answers = current.data[0]["answers"] if current.data else {}
     answers[f"q{step}"] = answer
-
-    supabase.table("survey_sessions").update(
-        {"current_step": step + 1, "answers": answers}
-    ).eq("id", session_id).execute()
-
-    # Redirect to Adsterra DL
-    dl_url = f"{ADSTERRA_DL_URL}?user_id={telegram_id}&step={step}&action=survey"
+    
+    supabase.table("survey_sessions").update({
+        "current_step": step + 1,
+        "answers": answers
+    }).eq("user_id", telegram_id).execute()
+    
+    # Redirect to Adsterra DL → return to your gateway
+    dl_url = f"https://hushclosing.com/t1r95sski9?key=54ee15c5b03f8b5b1222da89c95a2e13&user_id={telegram_id}&step={step}&return_to={"https://quizzy-tg-mini-app-backend.onrender.com"}/gateway/adsterra-return"
     return RedirectResponse(dl_url)
 
-
-@app.get("/webhook/adsterra-return")
+@app.get("/gateway/adsterra-return")
 async def adsterra_return(user_id: int, step: int):
-    """Adsterra return URL → redirect to frontend"""
-    # Log click (optional)
-    print(f"Adsterra click logged: user_id={user_id}, step={step}")
-
-    # Redirect to frontend with step
-    frontend_url = f"https://quizzy-tg-mini-app-frontend.onrender.com?user_id={user_id}&step={step}"
+    frontend_url = f" https://quizzy-tg-mini-app-frontend.onrender.com ?user_id={user_id}&step={step}"
     return RedirectResponse(frontend_url)
-
 
 @app.post("/api/complete-survey")
 async def complete_survey(request: Request):
