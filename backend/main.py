@@ -6,6 +6,7 @@ import os
 import uuid
 from dotenv import load_dotenv
 from fastapi.templating import Jinja2Templates
+import uvicorn
 
 # Load env
 load_dotenv()
@@ -292,3 +293,11 @@ async def admin_logout(request: Request):
     response = RedirectResponse("/admin/login")
     response.delete_cookie("admin_session")
     return response
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "OK"}
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=10000, reload=False)
