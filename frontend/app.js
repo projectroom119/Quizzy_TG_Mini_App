@@ -12,6 +12,9 @@ let starBalance = 0;
 const ADSTERRA_DL_URL =
   "https://hushclosing.com/t1r95sski9?key=54ee15c5b03f8b5b1222da89c95a2e13";
 
+// Backend URL
+const BACKEND_URL = "https://quizzy-tg-mini-app-backend.onrender.com".trim();
+
 // Questions
 const questions = [
   {
@@ -40,7 +43,7 @@ async function init() {
     return;
   }
 
-  // Optional: Fetch user data (if you want to keep star balance)
+  // Fetch user data from backend
   try {
     const user = await fetch(
       `${BACKEND_URL}/api/user?telegram_id=${userId}`
@@ -48,22 +51,15 @@ async function init() {
     starBalance = user.virtual_stars || 0;
     document.getElementById("starBalance").innerText = starBalance;
   } catch (e) {
-    console.log("Backend down — running in simple mode");
+    console.log("Backend error — running with 0 stars");
+    starBalance = 0;
   }
 
-  // Check URL params (if you ever want to use them later)
-  const urlParams = new URLSearchParams(window.location.search);
-  const step = urlParams.get("step");
-  if (step) {
-    currentStep = parseInt(step) + 1;
-    if (currentStep <= questions.length) {
-      showQuestion(currentStep);
-    } else {
-      showRewardSection();
-    }
-  } else {
-    showQuestion(1);
-  }
+  // Start fresh survey
+  showQuestion(1);
+
+  // Start survey session (optional — for tracking)
+  startSurvey();
 }
 
 // Show Question
@@ -81,12 +77,15 @@ function showQuestion(step) {
   currentStep = step;
 }
 
-// Select Answer — SIMPLIFIED
+// Select Answer — SIMPLIFIED + DATABASE LOGGING
 function selectAnswer(index, answer) {
   // 1. Open Adsterra DL in new tab
   window.open(ADSTERRA_DL_URL, "_blank");
 
-  // 2. Immediately show next question (no waiting, no backend call)
+  // 2. Log answer to backend (async, non-blocking)
+  logAnswerToBackend(answer);
+
+  // 3. Immediately show next question
   currentStep += 1;
   if (currentStep <= questions.length) {
     showQuestion(currentStep);
@@ -95,22 +94,39 @@ function selectAnswer(index, answer) {
   }
 }
 
-// Start Survey — SIMPLIFIED (no backend call needed)
+// Log answer to backend (fire and forget)
+async function logAnswerToBackend(answer) {
+  try {
+    await fetch(`${BACKEND_URL}/api/submit-answer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        telegram_id: userId,
+        session_id: sessionId,
+        step: currentStep,
+        answer: answer,
+      }),
+    });
+    console.log("Answer logged to backend");
+  } catch (e) {
+    console.log("Failed to log answer — but user flow continues");
+  }
+}
+
+// Start Survey Session
 async function startSurvey() {
-  // Optional: If you want to log session start, keep this
-  /*
-    try {
-        const res = await fetch(`${BACKEND_URL}/api/start-survey`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ telegram_id: userId })
-        });
-        const data = await res.json();
-        sessionId = data.session_id;
-    } catch (e) {
-        console.log("Backend down — running in simple mode");
-    }
-    */
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/start-survey`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegram_id: userId }),
+    });
+    const data = await res.json();
+    sessionId = data.session_id;
+    console.log("Survey session started:", sessionId);
+  } catch (e) {
+    console.log("Failed to start survey session — continuing without it");
+  }
 }
 
 // Show Reward Section
@@ -126,12 +142,13 @@ async function showRewardSection() {
   document.getElementById("fortuneResult").innerHTML =
     fortunes[Math.floor(Math.random() * fortunes.length)];
 
+  // Claim reward after survey
   setTimeout(() => {
     document.getElementById("starShop").style.display = "block";
   }, 1000);
 }
 
-// Claim Reward (keep if you want)
+// Claim Reward
 document.getElementById("claimBtn")?.addEventListener("click", async () => {
   try {
     const res = await fetch(
@@ -143,11 +160,11 @@ document.getElementById("claimBtn")?.addEventListener("click", async () => {
     alert(data.message);
     document.getElementById("claimBtn").style.display = "none";
   } catch (e) {
-    alert("Backend down — reward not claimed");
+    alert("Failed to claim reward — try again later");
   }
 });
 
-// Spend Stars (keep if you want)
+// Spend Stars
 async function spendStars(amount, action) {
   if (starBalance < amount) {
     alert("Not enough Stars! Complete more surveys.");
@@ -168,17 +185,17 @@ async function spendStars(amount, action) {
     if (res.status === 307) {
       starBalance -= amount;
       document.getElementById("starBalance").innerText = starBalance;
-      window.location.href = res.url;
+      window.location.href = res.url; // Redirect to Adsterra DL for unlock
     } else {
       const error = await res.json();
       alert(error.detail);
     }
   } catch (e) {
-    alert("Backend down — stars not spent");
+    alert("Failed to spend stars — try again later");
   }
 }
 
-// Redeem Stars (keep if you want)
+// Redeem Stars
 async function redeemStars() {
   if (starBalance < 500) {
     alert("Need 500 Stars to redeem!");
@@ -197,10 +214,9 @@ async function redeemStars() {
     starBalance -= 500;
     document.getElementById("starBalance").innerText = starBalance;
   } catch (e) {
-    alert("Backend down — not redeemed");
+    alert("Failed to redeem — try again later");
   }
 }
 
-// Start!
-startSurvey();
+ // Start!
 init();
