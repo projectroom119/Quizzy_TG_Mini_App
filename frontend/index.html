@@ -1,39 +1,142 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>FortuneQuest 🧬</title>
-    <link rel="stylesheet" href="style.css">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quizzy 🧬</title>
+    <link rel="stylesheet" href="style.css" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-</head>
-<body>
+  </head>
+  <body>
+    <!-- User Header -->
+    <div id="userHeader" class="user-header">
+      <img id="userAvatar" src="" alt="Avatar" class="avatar" />
+      <div class="user-info">
+        <div id="userName" class="name">Loading...</div>
+        <div id="starBalance" class="balance">🌟 0</div>
+      </div>
+    </div>
+
+    <!-- Forced First Survey Modal -->
+    <div id="firstSurveyModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <h2>🎯 First Survey</h2>
+        <p>Complete this survey → earn 50 Stars! 🪙</p>
+        <button id="startFirstSurveyBtn" class="btn">Start Survey →</button>
+      </div>
+    </div>
+
+    <!-- Main App -->
     <div id="app">
-        <!-- Survey Section -->
-        <div id="surveySection" style="display:none;">
-            <h2>🎯 What's Your Hidden Money Personality?</h2>
-            <div id="questionContainer"></div>
-            <button id="nextBtn" class="btn">Next →</button>
+      <!-- Survey Page -->
+      <div id="surveyPage" class="page" style="display: none">
+        <h2>📋 Surveys</h2>
+        <div id="incomingSurveys">
+          <h3>📥 Incoming Surveys</h3>
+          <div id="incomingList"></div>
         </div>
+        <div id="completedSurveys">
+          <h3>✅ Completed Surveys</h3>
+          <div id="completedList"></div>
+        </div>
+      </div>
 
-        <!-- Reward Section -->
-        <div id="rewardSection" style="display:none;">
-            <h2>🎉 Your Fortune is Ready!</h2>
-            <div id="fortuneResult"></div>
-            <p>🌟 <span id="starBalance">0</span> Virtual Stars</p>
-            <button id="claimBtn" class="btn">Claim 20 Stars</button>
+      <!-- Task Page -->
+      <div id="taskPage" class="page" style="display: none">
+        <h2>✅ Tasks</h2>
+        <div class="task-card">
+          <h3>Join Our Channel</h3>
+          <p>Earn 10 Stars</p>
+          <button onclick="joinChannel()" class="btn">Join Channel →</button>
+          <button
+            onclick="claimChannelReward()"
+            id="claimChannelBtn"
+            class="btn"
+            style="display: none"
+          >
+            Claim 10 Stars
+          </button>
         </div>
+        <div class="task-card">
+          <h3>Invite Friends</h3>
+          <p>Earn 30 Stars per friend</p>
+          <div id="referralLink">Loading...</div>
+          <button onclick="copyRefLink()" class="btn">Copy Link</button>
+          <div id="referralList"></div>
+        </div>
+      </div>
 
-        <!-- Star Shop -->
-        <div id="starShop" style="display:none;">
-            <h3>✨ Spend Stars to Unlock More!</h3>
-            <button onclick="spendStars(10, 'skip_wait')" class="shop-btn">🔓 Skip Wait (10 Stars)</button>
-            <button onclick="spendStars(5, 'spin_wheel')" class="shop-btn">🎡 Spin Wheel (5 Stars)</button>
-            <button onclick="spendStars(30, 'bonus_survey')" class="shop-btn">🎯 Bonus Survey (30 Stars)</button>
-            <button onclick="redeemStars()" class="shop-btn redeem-btn">💰 Redeem 500 Stars for REAL Stars</button>
+      <!-- Me Page -->
+      <div id="mePage" class="page" style="display: none">
+        <h2>👤 Me</h2>
+        <div class="dashboard-card">
+          <h3>📊 Stats</h3>
+          <p>Total Stars: <span id="totalStars">0</span></p>
+          <p>Surveys Completed: <span id="surveysCompleted">0</span></p>
+          <p>Friends Referred: <span id="friendsReferred">0</span></p>
         </div>
+        <div class="dashboard-card">
+          <h3>💰 Redeem Stars</h3>
+          <p>Min: 2000 Stars | Max: 2000/week</p>
+          <button onclick="showRedeemModal()" class="btn redeem-btn">
+            Redeem Now
+          </button>
+        </div>
+      </div>
+
+      <!-- Survey Section (Modal) -->
+      <div id="surveySection" class="modal" style="display: none">
+        <div class="modal-content">
+          <h2 id="surveyTitle">🎯 What's Your Hidden Money Personality?</h2>
+          <div id="questionContainer"></div>
+        </div>
+      </div>
+
+      <!-- Reward Section (Modal) -->
+      <div id="rewardSection" class="modal" style="display: none">
+        <div class="modal-content">
+          <h2>🎉 Your Fortune is Ready!</h2>
+          <div id="fortuneResult"></div>
+          <button id="claimBtn" class="btn">Claim 50 Stars</button>
+        </div>
+      </div>
+
+      <!-- Redeem Modal -->
+      <div id="redeemModal" class="modal" style="display: none">
+        <div class="modal-content">
+          <h2>💰 Redeem Stars</h2>
+          <p>Enter payment info (min 2000 Stars):</p>
+          <input
+            type="text"
+            id="paymentName"
+            placeholder="Full Name"
+            class="input-field"
+          />
+          <input
+            type="text"
+            id="paymentEmail"
+            placeholder="PayPal Email"
+            class="input-field"
+          />
+          <button onclick="submitRedeem()" class="btn">
+            Redeem 2000 Stars
+          </button>
+        </div>
+      </div>
+
+      <!-- Toast -->
+      <div id="toast" class="toast">Message</div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+      <button onclick="showPage('surveyPage')" class="nav-btn active">
+        📋 Surveys
+      </button>
+      <button onclick="showPage('taskPage')" class="nav-btn">✅ Tasks</button>
+      <button onclick="showPage('mePage')" class="nav-btn">👤 Me</button>
     </div>
 
     <script src="app.js"></script>
-</body>
+  </body>
 </html>
