@@ -1,6 +1,9 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
+// ✅ ADD THIS LINE
+const BACKEND_URL = "https://quizzy-tg-mini-app.onrender.com"; // ← NO TRAILING SPACE!
+
 let userId = tg.initDataUnsafe?.user?.id;
 let sessionId = null;
 let currentStep = 1;
@@ -29,8 +32,8 @@ async function init() {
         return;
     }
 
-    // Get user data
-    const user = await fetch(`/api/user?telegram_id=${userId}`).then(r => r.json());
+    // ✅ FIXED: Use BACKEND_URL
+    const user = await fetch(`${BACKEND_URL}/api/user?telegram_id=${userId}`).then(r => r.json());
     starBalance = user.virtual_stars || 0;
     document.getElementById('starBalance').innerText = starBalance;
 
@@ -51,28 +54,24 @@ async function init() {
     }
 }
 
-// Show Question
-function showQuestion(step) {
-    document.getElementById('surveySection').style.display = 'block';
-    document.getElementById('rewardSection').style.display = 'none';
-    document.getElementById('starShop').style.display = 'none';
-
-    const q = questions[step - 1];
-    let html = `<h3>Q${step}: ${q.text}</h3>`;
-    q.options.forEach((opt, i) => {
-        html += `<button class="option-btn" onclick="selectAnswer(${i}, '${opt}')">${opt}</button>`;
+// Start Survey
+async function startSurvey() {
+    // ✅ FIXED: Use BACKEND_URL
+    const res = await fetch(`${BACKEND_URL}/api/start-survey`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegram_id: userId })
     });
-    document.getElementById('questionContainer').innerHTML = html;
-    currentStep = step;
+    const data = await res.json();
+    sessionId = data.session_id;
 }
 
 // Select Answer
 function selectAnswer(index, answer) {
-    // Disable buttons
     document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
 
-    // Send to backend
-    fetch('/api/submit-answer', {
+    // ✅ FIXED: Use BACKEND_URL
+    fetch(`${BACKEND_URL}/api/submit-answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -89,39 +88,10 @@ function selectAnswer(index, answer) {
     });
 }
 
-// Start Survey
-async function startSurvey() {
-    const res = await fetch('/api/start-survey', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegram_id: userId })
-    });
-    const data = await res.json();
-    sessionId = data.session_id;
-}
-
-// Show Reward Section
-async function showRewardSection() {
-    document.getElementById('surveySection').style.display = 'none';
-    document.getElementById('rewardSection').style.display = 'block';
-
-    // Generate fortune (for demo)
-    const fortunes = [
-        "You're a: CRYPTO WHALE IN HIDING 🐋<br>🔮 2025 Income: $27,400<br>🌍 Travel: 4 countries",
-        "You're a: WOLF OF WALL STREET 🐺<br>🔮 2025 Income: $50,000<br>🌍 Travel: 2 countries",
-        "You're a: SLY FOX TRADER 🦊<br>🔮 2025 Income: $15,000<br>🌍 Travel: 6 countries"
-    ];
-    document.getElementById('fortuneResult').innerHTML = fortunes[Math.floor(Math.random() * fortunes.length)];
-
-    // Show star shop after 1s
-    setTimeout(() => {
-        document.getElementById('starShop').style.display = 'block';
-    }, 1000);
-}
-
 // Claim Reward
 document.getElementById('claimBtn')?.addEventListener('click', async () => {
-    const res = await fetch(`/api/claim-reward?telegram_id=${userId}`);
+    // ✅ FIXED: Use BACKEND_URL
+    const res = await fetch(`${BACKEND_URL}/api/claim-reward?telegram_id=${userId}`);
     const data = await res.json();
     starBalance += data.stars;
     document.getElementById('starBalance').innerText = starBalance;
@@ -136,7 +106,8 @@ async function spendStars(amount, action) {
         return;
     }
 
-    const res = await fetch('/api/spend-stars', {
+    // ✅ FIXED: Use BACKEND_URL
+    const res = await fetch(`${BACKEND_URL}/api/spend-stars`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -149,7 +120,7 @@ async function spendStars(amount, action) {
     if (res.status === 307) {
         starBalance -= amount;
         document.getElementById('starBalance').innerText = starBalance;
-        window.location.href = res.url; // Redirect to Adsterra DL
+        window.location.href = res.url;
     } else {
         const error = await res.json();
         alert(error.detail);
@@ -163,7 +134,8 @@ async function redeemStars() {
         return;
     }
 
-    const res = await fetch('/api/redeem-stars', {
+    // ✅ FIXED: Use BACKEND_URL
+    const res = await fetch(`${BACKEND_URL}/api/redeem-stars`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ telegram_id: userId })
@@ -173,6 +145,38 @@ async function redeemStars() {
     alert(data.message);
     starBalance -= 500;
     document.getElementById('starBalance').innerText = starBalance;
+}
+
+// Show Reward Section (no fetch — safe)
+async function showRewardSection() {
+    document.getElementById('surveySection').style.display = 'none';
+    document.getElementById('rewardSection').style.display = 'block';
+
+    const fortunes = [
+        "You're a: CRYPTO WHALE IN HIDING 🐋<br>🔮 2025 Income: $27,400<br>🌍 Travel: 4 countries",
+        "You're a: WOLF OF WALL STREET 🐺<br>🔮 2025 Income: $50,000<br>🌍 Travel: 2 countries",
+        "You're a: SLY FOX TRADER 🦊<br>🔮 2025 Income: $15,000<br>🌍 Travel: 6 countries"
+    ];
+    document.getElementById('fortuneResult').innerHTML = fortunes[Math.floor(Math.random() * fortunes.length)];
+
+    setTimeout(() => {
+        document.getElementById('starShop').style.display = 'block';
+    }, 1000);
+}
+
+// Show Question (no fetch — safe)
+function showQuestion(step) {
+    document.getElementById('surveySection').style.display = 'block';
+    document.getElementById('rewardSection').style.display = 'none';
+    document.getElementById('starShop').style.display = 'none';
+
+    const q = questions[step - 1];
+    let html = `<h3>Q${step}: ${q.text}</h3>`;
+    q.options.forEach((opt, i) => {
+        html += `<button class="option-btn" onclick="selectAnswer(${i}, '${opt}')">${opt}</button>`;
+    });
+    document.getElementById('questionContainer').innerHTML = html;
+    currentStep = step;
 }
 
 // Start!
