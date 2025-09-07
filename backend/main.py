@@ -5,7 +5,6 @@ from datetime import datetime
 import os
 import uuid
 from dotenv import load_dotenv
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 # Load env
@@ -24,7 +23,6 @@ supabase: Client = create_client(url, key)
 app = FastAPI()
 
 # Add after app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")  # Set in Render env vars
