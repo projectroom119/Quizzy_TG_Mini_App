@@ -117,8 +117,10 @@ async def complete_survey(request: Request):
     }).eq("id", session_id).execute()
     
     # Increment surveys_completed
+    user = supabase.table("users").select("surveys_completed").eq("telegram_id", telegram_id).execute()
+    current_completed = user.data[0]["surveys_completed"] if user.data else 0
     supabase.table("users").update({
-        "surveys_completed": supabase.raw("surveys_completed + 1")
+        "surveys_completed": current_completed + 1
     }).eq("telegram_id", telegram_id).execute()
     
     return {"message": "Survey completed."}
@@ -186,9 +188,11 @@ async def redeem_stars(request: Request):
         raise HTTPException(status_code=400, detail="Need 500 stars to redeem")
     
     # Deduct stars
+    current_virtual_stars = user.data[0]["virtual_stars"]
+    current_real_stars_redeemed = user.data[0].get("real_stars_redeemed", 0)
     supabase.table("users").update({
-        "virtual_stars": supabase.raw("virtual_stars - 500"),
-        "real_stars_redeemed": supabase.raw("real_stars_redeemed + 500")
+        "virtual_stars": current_virtual_stars - 500,
+        "real_stars_redeemed": current_real_stars_redeemed + 500
     }).eq("telegram_id", telegram_id).execute()
     
     # Create redemption request
