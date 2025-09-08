@@ -21,7 +21,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://quizzy-tg-mini-app-frontend.onrender.com",
-        "https://quizzy-tg-mini-app-backend.onrender.com"
+        "https://quizzy-tg-mini-app-backend.onrender.com",
+        "http://localhost:3000"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -212,6 +213,27 @@ async def redeem_stars(request: Request):
     }).execute()
     
     return {"success": True, "message": "✅ Redemption request received! Processed within 24h."}
+
+
+@app.post("/api/spend-stars")
+async def spend_stars(request: Request):
+    data = await request.json()
+    telegram_id = data.get("telegram_id")
+    amount = data.get("amount", 10)
+    action = data.get("action", "skip_wait")
+    
+    # If action is "watch_ad" → don't deduct stars → just log
+    if action == "watch_ad":
+        # Log transaction
+        supabase.table("star_transactions").insert({
+            "user_id": telegram_id,
+            "amount": -amount,  # Negative because it's a "spend" action
+            "type": "watch_ad",
+            "description": f"Watched ad → earned {abs(amount)} stars"
+        }).execute()
+        return {"success": True, "message": "Ad watched"}
+    
+    # ... rest of your existing spend-stars logic ...
 
 @app.get("/health")
 async def health_check():

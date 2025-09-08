@@ -6,6 +6,7 @@
     <title>Quizzy 🧬</title>
     <link rel="stylesheet" href="style.css" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src='//libtl.com/sdk.js' data-zone='9845275' data-sdk='show_9845275'></script>
   </head>
   <body>
     <!-- User Header -->
@@ -38,6 +39,7 @@
         <div id="completedSurveys">
           <h3>✅ Completed Surveys</h3>
           <div id="completedList"></div>
+          <button onclick="watchAdPopupForStars(30)" class="btn">Watch Popup Ad → 30 Stars</button>
         </div>
       </div>
 
@@ -57,6 +59,12 @@
             Claim 10 Stars
           </button>
         </div>
+        <div class="task-card">
+          <div class="task-card"> 
+    <h3>📺 Watch Ad → Earn 50 Stars</h3>
+    <button onclick="watchAdForStars(50)" class="btn">Watch Now →</button>
+</div>
+ </div>
         <div class="task-card">
           <h3>Invite Friends</h3>
           <p>Earn 30 Stars per friend</p>

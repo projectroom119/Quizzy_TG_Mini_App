@@ -14,7 +14,8 @@ let friendsReferred = 0;
 
 const ADSTERRA_DL_URL =
   "https://hushclosing.com/t1r95sski9?key=54ee15c5b03f8b5b1222da89c95a2e13";
-const BACKEND_URL = "https://quizzy-tg-mini-app-backend.onrender.com".trim();
+//const BACKEND_URL = "https://quizzy-tg-mini-app-backend.onrender.com".trim();
+const BACKEND_URL = "http://localhost:8000".trim();
 
 const questions = [
   {
@@ -195,6 +196,63 @@ document.getElementById("claimBtn")?.addEventListener("click", async () => {
     showToast("Failed to claim reward");
   }
 });
+// Watch Ad → Earn Stars
+async function watchAdForStars(stars) {
+    try {
+        // Show Rewarded Interstitial
+        await show_9845275();
+        
+        // Reward user
+        starBalance += stars;
+        document.getElementById("starBalance").innerText = `🌟 ${starBalance}`;
+        document.getElementById("totalStars").innerText = starBalance;
+        showToast(`🎉 ${stars} Stars Credited!`);
+
+        // Log to backend
+        await fetch(`${BACKEND_URL}/api/spend-stars`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                telegram_id: userId,
+                amount: -stars, // Negative because we're "spending" nothing — just logging
+                action: "watch_ad"
+            })
+        });
+
+        // Log transaction
+        await fetch(`${BACKEND_URL}/api/claim-reward`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+    } catch (e) {
+        showToast("Ad failed — no stars earned");
+    }
+}
+async function watchAdPopupForStars(stars) {
+    try {
+        await show_9845275('pop');
+        starBalance += stars;
+        document.getElementById("starBalance").innerText = `🌟 ${starBalance}`;
+        showToast(`🎉 ${stars} Stars Credited!`);
+    } catch (e) {
+        showToast("Popup ad failed");
+    }
+}
+
+// Auto-show in-app interstitial every 5 minutes
+setInterval(() => {
+    show_9845275({
+        type: 'inApp',
+        inAppSettings: {
+            frequency: 1,
+            capping: 0.1,
+            interval: 30,
+            timeout: 5,
+            everyPage: false
+        }
+    }).catch(e => console.log("In-app ad failed"));
+}, 5 * 60 * 1000); // 5 minutes
 
 // Load Surveys
 async function loadSurveys() {
