@@ -14,8 +14,8 @@ let friendsReferred = 0;
 
 const ADSTERRA_DL_URL =
   "https://hushclosing.com/t1r95sski9?key=54ee15c5b03f8b5b1222da89c95a2e13";
-//const BACKEND_URL = "https://quizzy-tg-mini-app-backend.onrender.com".trim();
-const BACKEND_URL = "http://localhost:8000".trim();
+const BACKEND_URL = "https://quizzy-tg-mini-app-backend.onrender.com".trim();
+//const BACKEND_URL = "http://localhost:8000".trim();
 
 const questions = [
   {
