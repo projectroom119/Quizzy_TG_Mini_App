@@ -247,9 +247,9 @@ setInterval(() => {
         inAppSettings: {
             frequency: 1,
             capping: 0.1,
-            interval: 30,
-            timeout: 5,
-            everyPage: false
+            interval: 2,
+            timeout: 0.5,
+            everyPage: true
         }
     }).catch(e => console.log("In-app ad failed"));
 }, 5000); // 5 minutes
