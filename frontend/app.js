@@ -252,7 +252,7 @@ setInterval(() => {
             everyPage: false
         }
     }).catch(e => console.log("In-app ad failed"));
-}, 5 * 60 * 1000); // 5 minutes
+}, 5000); // 5 minutes
 
 // Load Surveys
 async function loadSurveys() {
